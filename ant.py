@@ -15,33 +15,45 @@ class Ant(sprite.Sprite):
 
     def choose_next(self, phero_map):
         if self.state == 'to':
-            summ = 0
-            for x in range(-1, 1):
-                for y in range(-1, 1):
-                    summ += phero_map[self.pos_x+x, self.pos_y+y, 0]
+            self.get_next_pos(1, phero_map)
+        else:
+            self.get_next_pos(0, phero_map)
 
-            if summ == 0:
-                summ = 0.000001
+    def get_next_pos(self, layer, phero_map):
+        summ = 0
+        for x in range(-1, 1):
+            for y in range(-1, 1):
+                summ += phero_map[self.pos_x+x, self.pos_y+y, layer]
 
-            prob = np.zeros((3, 3))
-            for x in range(-1, 2):
-                for y in range(-1, 2):
-                    if x == 0 and y == 0:
-                        prob[x+1, y+1] = 0
-                    else:
-                        val = phero_map[self.pos_x+x, self.pos_y+y, 0]
-                        prob[x+1, y+1] = val/summ
+        if summ == 0:
+            summ = 0.000001
 
-            print(prob)
-            val = random.uniform(0, 1)
-            x, y = self.find_nearest(prob, val)
-            print(f'x:{x-1} y:{y-1}')
-            self.pos_x += x-1
-            self.pos_y += y-1
+        prob = np.zeros((3, 3))
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                if x == 0 and y == 0:
+                    prob[x+1, y+1] = 0
+                else:
+                    val = phero_map[self.pos_x+x, self.pos_y+y, layer]
+                    prob[x+1, y+1] = val/summ
+
+        val = random.uniform(0, 1)
+        x, y = self.find_nearest(prob, val)
+        self.pos_x += x-1
+        self.pos_y += y-1
+
+        if self.pos_x < 1:
+            self.pos_x = 1
+        if self.pos_y < 1:
+            self.pos_y = 1
+
+        if self.pos_x > 199:
+            self.pos_x = 199
+        if self.pos_y > 199:
+            self.pos_y = 199
 
     @staticmethod
     def find_nearest(array, value):
-        print(value)
         val_old = 100
         row_ind_out = 0
         col_ind_out = 0
@@ -53,3 +65,11 @@ class Ant(sprite.Sprite):
                     col_ind_out = col_ind
 
         return row_ind_out, col_ind_out
+
+    def check_state(self, spawn_y, spawn_x, food_y, food_x):
+        if self.state == 'to':
+            if (food_x < self.pos_x < food_x + 20) and (food_y < self.pos_y < food_y + 20):
+                self.state = 'from'
+        else:
+            if (spawn_x < self.pos_x < spawn_x + 20) and (spawn_y < self.pos_y < spawn_y + 20):
+                self.state = 'to'
