@@ -6,18 +6,23 @@ class Phero_map:
         self.canvas = np.random.uniform(0, 0.01, (width, height, 3))   #
         self.canvas[:, :, 2] = 0
 
-    def update_to_food(self, x, y, val):
+    def update_to_food(self, y, x, val):
         self.canvas[x, y, 0] = self.canvas[x, y, 0] + val
+        if self.canvas[x, y, 0] > 1:
+            self.canvas[x, y, 0] = 1
 
-    def update_from_food(self, x, y, val):
+    def update_from_food(self, y, x, val):
         self.canvas[x, y, 1] = self.canvas[x, y, 1] + val
+        if self.canvas[x, y, 1] > 1:
+            self.canvas[x, y, 1] = 1
 
     def get_map(self):
         output = np.zeros(self.canvas.shape)
         output[:, :, 0] = self.scale(self.canvas[:, :, 0])
         output[:, :, 1] = self.scale(self.canvas[:, :, 1])
         output[:, :, 2] = np.zeros(self.canvas.shape[0:1])
-        return output
+        output = np.swapaxes(output, 0, 1)
+        return output.astype(np.uint8)
 
     @staticmethod
     def scale(x, out_range=(0, 255)):
